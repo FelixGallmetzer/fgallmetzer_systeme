@@ -1,0 +1,100 @@
+#define _POSIX_C_SOURCE 200112L
+
+// asprintf() does not appear on linux without this
+#define _GNU_SOURCE
+// gettimeofday() does not appear on linux without this
+#define _DEFAULT_SOURCE
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <signal.h>
+#include <time.h>
+#include <stdbool.h>
+
+#include <semaphore.h>
+#include <sys/mman.h>
+#include <sys/stat.h> /* Defines mode constants */
+#include <fcntl.h> /* Defines O_* constants */
+#include <unistd.h> /* for close() */
+
+
+/*
+ * Space Game: Graphic Server
+ */
+
+#include "spaceHeader.h"
+
+/* A value <> 0 terminates the program */
+static bool exitRequest = false;
+
+/* Shared memory buffer */
+struct shmbuf {
+	sem_t sem; /* Semaphore for playfield */
+	char playfield[N_ROWS * N_COLS]; /* The playfield/space */
+};
+
+/*
+ * Handles an incoming termination request signal
+ */
+static void exitHandle(int sig)
+{
+	exitRequest = true;
+}
+
+int main()
+{
+	/*
+	 * Creates or gets the preexisting shared memory area reserved with the name
+	 * "SHARED_MEMORY_NAME" for the space game.
+	 */
+	// ...
+
+	/* set size of SHM object */
+	// ...
+
+	/* map SHM object into caller's address space */
+	// ...
+
+	/* close unused file descriptor */
+	// ...
+
+	/* initialize semaphore */
+	// ...
+
+	/* Clear screen */
+	system("clear");
+	
+	/* Register the signals for termination requests */
+	signal(SIGINT, exitHandle);
+	signal(SIGTERM, exitHandle);
+
+	while (!exitRequest) {
+		int x,y;
+		/* 0,1 sec. delay for "nanosleep" in print loop */
+		struct timespec delay = { 0, 100000000L };
+
+		/* lock the semaphore (decrease) */
+		// ...
+
+		/* Draw playfield */
+		printf("\033[1;1H");
+		for (y = 0; y < N_ROWS; y++) {
+			for (x = 0; x < N_COLS; x++)
+				putchar(shmp->playfield[y * N_COLS + x]);
+			putchar('\n');
+		}
+		fflush(stdout);
+		
+		/* unlock the semaphore (increase) */
+		// ...
+		
+		nanosleep(&delay, NULL);
+	}
+
+	/* delete the mapping for the specified range */
+	// ...
+	
+	/* remove SHM object */
+	// ...
+}
