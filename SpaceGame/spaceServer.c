@@ -49,18 +49,33 @@ int main()
 	 * "SHARED_MEMORY_NAME" for the space game.
 	 */
 	// ...
+	int fd = shm_open(SHARED_MEMORY_NAME, O_EXCL | O_RDWR, S_IRUSR|S_IWUSR);
+	if (fd < 0) {
+		printf("Fehler");
+		return -1;
+	}
 
 	/* set size of SHM object */
 	// ...
+	if(ftruncate(fd, sizeof(struct shmbuf)) == -1) {
+		printf("Fehler");
+		return -1;
+	}
 
 	/* map SHM object into caller's address space */
 	// ...
+	struct shmbuf *shmp = mmap(NULL, sizeof(struct shmbuf), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
 	/* close unused file descriptor */
 	// ...
+	close(fd);
 
 	/* initialize semaphore */
 	// ...
+	if(sem_init (&shmp->sem, 1, 1)== -1) {
+		printf("Fehler");
+		return -1;
+	}
 
 	/* Clear screen */
 	system("clear");
@@ -76,6 +91,7 @@ int main()
 
 		/* lock the semaphore (decrease) */
 		// ...
+		sem_wait(&shmp->sem);
 
 		/* Draw playfield */
 		printf("\033[1;1H");
@@ -88,13 +104,22 @@ int main()
 		
 		/* unlock the semaphore (increase) */
 		// ...
+		sem_post(&shmp->sem);
 		
 		nanosleep(&delay, NULL);
 	}
 
 	/* delete the mapping for the specified range */
 	// ...
+	if(munmap(shmp, sizeof(struct shmbuf)) == -1) {
+		printf("Fehler");
+		return -1;
+	} 
 	
 	/* remove SHM object */
 	// ...
+	if(shm_unlink(SHARED_MEMORY_NAME)== -1) {
+		printf("Fehler");
+		return -1;
+	}
 }
