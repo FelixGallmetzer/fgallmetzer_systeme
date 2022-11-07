@@ -49,16 +49,16 @@ int main()
 	 * "SHARED_MEMORY_NAME" for the space game.
 	 */
 	// ...
-	int fd = shm_open(SHARED_MEMORY_NAME, O_EXCL | O_RDWR, S_IRUSR|S_IWUSR);
+	int fd = shm_open(SHARED_MEMORY_NAME, O_CREAT | O_RDWR, S_IRUSR|S_IWUSR);
 	if (fd < 0) {
-		printf("Fehler");
+		perror("Fehler");
 		return -1;
 	}
 
 	/* set size of SHM object */
 	// ...
 	if(ftruncate(fd, sizeof(struct shmbuf)) == -1) {
-		printf("Fehler");
+		perror("Fehler");
 		return -1;
 	}
 
@@ -73,7 +73,7 @@ int main()
 	/* initialize semaphore */
 	// ...
 	if(sem_init (&shmp->sem, 1, 1)== -1) {
-		printf("Fehler");
+		perror("Fehler");
 		return -1;
 	}
 
@@ -107,19 +107,12 @@ int main()
 		sem_post(&shmp->sem);
 		
 		nanosleep(&delay, NULL);
-	}
-
-	/* delete the mapping for the specified range */
-	// ...
-	if(munmap(shmp, sizeof(struct shmbuf)) == -1) {
-		printf("Fehler");
-		return -1;
 	} 
 	
 	/* remove SHM object */
 	// ...
 	if(shm_unlink(SHARED_MEMORY_NAME)== -1) {
-		printf("Fehler");
+		perror("Fehler");
 		return -1;
 	}
 }
