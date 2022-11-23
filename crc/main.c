@@ -1,87 +1,75 @@
-// Include headers
 #include<stdio.h>
 #include<string.h>
-// length of the generator polynomial
-#define N strlen(gen_poly)
-// data to be transmitted and received
-char data[28];
-// CRC value
-char check_value[28];
-// generator polynomial
-char gen_poly[10];
-// variables 
-int data_length,i,j;
-// function that performs XOR operation
+char generator[10];
+#define N strlen(generator)
+char eingabe[28];
+char checksum[28];
+int eingabe_length,i,j;
+
+// überprüft über das XOR Verfahren ob die Eingabe 1 oder 0 ist.
 void XOR(){
-    // if both bits are the same, the output is 0
-    // if the bits are different the output is 1
-    for(j = 1;j < N; j++)
-    check_value[j] = (( check_value[j] == gen_poly[j])?'0':'1');
-    
-}
-// Function to check for errors on the receiver side
-void receiver(){
-// get the received data
-    printf("Enter the received data: ");
-    scanf("%s", data);
-    printf("\n-----------------------------\n");
-    printf("Data received: %s", data);
-// Cyclic Redundancy Check
-    crc();
-// Check if the remainder is zero to find the error
-    for(i=0;(i<N-1) && (check_value[i]!='1');i++);
-        if(i<N-1)
-            printf("\nError detected\n\n");
-        else
-            printf("\nNo error detected\n\n");
+    for(j = 1; j < N; j++)
+    checksum[j] = (( checksum[j] == generator[j])?'0':'1');   
 }
 
 void crc(){
-    // initializing check_value
-    for(i=0;i<N;i++)
-        check_value[i]=data[i];
+    for(i = 0; i < N; i++)
+        checksum[i] = eingabe[i];
     do{
-    // check if the first bit is 1 and calls XOR function
-        if(check_value[0]=='1')
+        if(checksum[0] == '1') {
             XOR();
-// Move the bits by 1 position for the next computation
-        for(j=0;j<N-1;j++)
-            check_value[j]=check_value[j+1];
-        // appending a bit from data
-        check_value[j]=data[i++];
-    }while(i<=data_length+N-1);
-// loop until the data ends
+        }
+// Die Bits werden für die nächste Berechnung um 1 verschoben.
+        for(j = 0; j < N - 1; j++)
+            checksum[j] = checksum[j + 1];
+        checksum[j] = eingabe[i++];
+    }while(i <= eingabe_length + N - 1);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    // get the data to be transmitted
-    printf("\nEnter data to be transmitted: ");
-    scanf("%s",data);
-    printf("\n Enter the Generating polynomial: ");
-    // get the generator polynomial
-    scanf("%s",gen_poly);
-    // find the length of data
-    data_length=strlen(data);
-    // appending n-1 zeros to the data
-    for(i=data_length;i<data_length+N-1;i++)
-        data[i]='0';
-    printf("\n----------------------------------------");
-// print the data with padded zeros
-    printf("\n Data padded with n-1 zeros : %s",data);
-    printf("\n----------------------------------------");
-// Cyclic Redundancy Check
+    if (argc > 3) {
+        printf("Zu viele Argumente");
+        return -1;
+    } 
+    if (argc < 3) {
+        printf("Zu wenig Argumente");
+        return -1;
+    }
+    for (i = 0; i < strlen(argv[1]); i++) {
+        eingabe[i] = argv[1][i];
+    }   
+    eingabe_length = strlen(eingabe);
+
+    for (i = 0; i < strlen(argv[2]); i++) {
+        generator[i] = argv[2][i];
+    }
+
+    // n-1 nullen zur Eingabe hinzufügen
+    for(i = eingabe_length; i < eingabe_length + N - 1; i++) {
+        eingabe[i] = '0';
+    }
+    //crc wird berechnet
     crc();
-// print the computed check value
-    printf("\nCRC or Check value is : %s",check_value);
-// Append data with check_value(CRC)  
-    for(i=data_length;i<data_length+N-1;i++)
-        data[i]=check_value[i-data_length];
-    printf("\n----------------------------------------");
-// printing the final data to be sent
-    printf("\n Final data to be sent : %s",data);
-    printf("\n----------------------------------------\n");
-// Calling the receiver function to check errors
-    receiver();
-        return 0;
+
+    printf("Checksum: %s\n",checksum); 
+
+    for(i = eingabe_length; i < eingabe_length + N - 1; i++) {
+        eingabe[i] = checksum[i - eingabe_length];
+    }
+    printf("Daten (um auf Fehler zu überprüfen): %s\n",eingabe);
+
+    printf("Geben sie die Daten ein: ");
+    scanf("%s", eingabe);
+    printf("Data received: %s", eingabe);
+
+    crc();
+
+    for(i=0;(i < N - 1) && (checksum[i]!= '1'); i++);
+        if(i < N - 1)
+            printf("\nFehler\n\n");
+        else
+            printf("\nkein Fehler\n\n");
+
+    return 0;
 }
