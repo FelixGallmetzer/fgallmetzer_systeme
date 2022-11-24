@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
     crc();
 
-    for(i=0;(i < N - 1) && (checksum[i]!= '1'); i++);
+    for(i = 0;(i < N - 1) && (checksum[i] != '1'); i++);
         if(i < N - 1)
             printf("\nFehler\n\n");
         else
