@@ -7,12 +7,12 @@ char checksum[28];
 int eingabe_length,i,j;
 
 // überprüft über das XOR Verfahren ob die Eingabe 1 oder 0 ist.
-void XOR(){
+void XOR(void){
     for(j = 1; j < N; j++)
     checksum[j] = (( checksum[j] == generator[j])?'0':'1');   
 }
 
-void crc(){
+void crc(void){
     for(i = 0; i < N; i++)
         checksum[i] = eingabe[i];
     do{
@@ -60,8 +60,11 @@ int main(int argc, char *argv[])
     printf("Daten (um auf Fehler zu überprüfen): %s\n",eingabe);
 
     printf("Geben sie die Daten ein: ");
-    scanf("%s", eingabe);
-    printf("Data received: %s", eingabe);
+    if (fgets(eingabe,sizeof(eingabe)-1,stdin) == 0) {
+        perror("0");
+        return -1;
+    }
+    printf("Daten: %s", eingabe);
 
     crc();
 
@@ -69,7 +72,7 @@ int main(int argc, char *argv[])
         if(i < N - 1)
             printf("\nFehler\n\n");
         else
-            printf("\nkein Fehler\n\n");
+            printf("\nKein Fehler\n\n");
 
     return 0;
 }
